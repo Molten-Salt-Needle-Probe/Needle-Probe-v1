@@ -36,6 +36,7 @@ V_i = pi*(r_4^2)*L-V_tc-V_h; % Insulation
 V_A = pi*(r_3^2)*L-V_tc-V_h; % Insulation inside outer wire radius
 V_s = pi*(r_5^2)*L-pi*(r_4^2)*L; % Sheath Volume
 V_total = V_tc+V_h+V_i+V_s; % Total Probe Volume
+
 % Pre-10-19-24:
 % r_6 = r_4 - (r_4-r_3)/200000; % Radius of insulation minus something happening in the core???
 % V_tc = pi*(r_TC_wire^2)*L/2; % Thermocouple volume

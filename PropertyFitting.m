@@ -21,7 +21,7 @@ manual_delay = off; %Adds in a manual delay that helps to see the fitting proces
 chi2plots = off; %show plots from the chi2 error analysis
 
 MC_iterations = 250; %The numbers of iterations to run as part of the Monte Carlo Analysis
-timewindow = [0.5 60]; % [1 50]; % (15 s) Sets the time interval to be analyzed, in seconds. Set beginning to 0 to start from the beginning
+timewindow = [1.0 199]; % [1 50]; % (15 s) Sets the time interval to be analyzed, in seconds. Set beginning to 0 to start from the beginning
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 iterations = 0;
@@ -130,32 +130,33 @@ else
 end
 
 choices = {
-    "1 - K Eff. Wires",           
-    "2 - Alpha Eff. Wires",           
-    "3 - K Insulation",           
-    "4 - Alpha Insulation",  
-    "5 - Rth Insulation-Sheath",  
-    "6 - K Sheath",           
-    "7 - Alpha Sheath", 
-    "8 - K Sample",
-    "9 - Alpha Sample",
-    "10 - K Crucible",
-    "11 - Alpha Crucible",
-    "12 - Emissivity Probe",
-    "13 - Emissivity Crucible",
-    "19 - Rwires",
-    "20 - Rsheath Inner",
-    "21 - Rsheath",
-    "22 - Rsample",
-    "23 - Rcrucible",
-    "26 - Rho Sample",
-    "27 - Cp Sample",
-    "28 - Rhosample * Cp Sample",
-    "29 - Current",
-    "30 - Flux Decay Factor"
+    '1 - K Eff. Wires';
+    '2 - Alpha Eff. Wires';
+    '3 - K Insulation';
+    '4 - Alpha Insulation';
+    '5 - Rth Insulation-Sheath';
+    '6 - K Sheath';
+    '7 - Alpha Sheath';
+    '8 - K Sample';
+    '9 - Alpha Sample';
+    '10 - K Crucible';
+    '11 - Alpha Crucible';
+    '12 - Emissivity Probe';
+    '13 - Emissivity Crucible';
+    '19 - Rwires';
+    '20 - Rsheath Inner';
+    '21 - Rsheath';
+    '22 - Rsample';
+    '23 - Rcrucible';
+    '26 - Rho Sample';
+    '27 - Cp Sample';
+    '28 - Rhosample * Cp Sample';
+    '29 - Current';
+    '30 - Flux Decay Factor'
 };
 
-% Display the dialog to select multiple values
+% Display the dialog to select multiple values. m is the indices of
+% selected parameters to solve.
 [m, ok] = listdlg('PromptString', 'Select Properties to Solve For:', ...
     'SelectionMode', 'multiple', ...
     'ListString', choices);
@@ -166,77 +167,81 @@ SolveList = [];
 
 % Check if the user made a selection
 if ok
+    % Preallocate arrays to match the size of m
+    SolveList = zeros(1, length(m));           % numeric array
+    SolveListNames = strings(1, length(m));    % string array
+
     for i = 1:length(m)
         switch m(i)
             case 1
-                SolveListNames = [SolveListNames, "1"];
-                SolveList = [SolveList, 1];
+                SolveListNames(i) = "1";
+                SolveList(i) = 1;
             case 2
-                SolveListNames = [SolveListNames, "2"];
-                SolveList = [SolveList, 2];
+                SolveListNames(i) = "2";
+                SolveList(i) = 2;
             case 3
-                SolveListNames = [SolveListNames, "3"];
-                SolveList = [SolveList, 3];
+                SolveListNames(i) = "3";
+                SolveList(i) = 3;
             case 4
-                SolveListNames = [SolveListNames, "4"];
-                SolveList = [SolveList, 4];
+                SolveListNames(i) = "4";
+                SolveList(i) = 4;
             case 5
-                SolveListNames = [SolveListNames, "5"];
-                SolveList = [SolveList, 5];
+                SolveListNames(i) = "5";
+                SolveList(i) = 5;
             case 6
-                SolveListNames = [SolveListNames, "6"];
-                SolveList = [SolveList, 6];
+                SolveListNames(i) = "6";
+                SolveList(i) = 6;
             case 7
-                SolveListNames = [SolveListNames, "7"];
-                SolveList = [SolveList, 7];
+                SolveListNames(i) = "7";
+                SolveList(i) = 7;
             case 8
-                SolveListNames = [SolveListNames, "8"];
-                SolveList = [SolveList, 8];
+                SolveListNames(i) = "8";
+                SolveList(i) = 8;
             case 9
-                SolveListNames = [SolveListNames, "9"];
-                SolveList = [SolveList, 9];
+                SolveListNames(i) = "9";
+                SolveList(i) = 9;
             case 10
-                SolveListNames = [SolveListNames, "10"];
-                SolveList = [SolveList, 10];
+                SolveListNames(i) = "10";
+                SolveList(i) = 10;
             case 11
-                SolveListNames = [SolveListNames, "11"];
-                SolveList = [SolveList, 11];
+                SolveListNames(i) = "11";
+                SolveList(i) = 11;
             case 12
-                SolveListNames = [SolveListNames, "12"];
-                SolveList = [SolveList, 12];
+                SolveListNames(i) = "12";
+                SolveList(i) = 12;
             case 13
-                SolveListNames = [SolveListNames, "13"];
-                SolveList = [SolveList, 13];
+                SolveListNames(i) = "13";
+                SolveList(i) = 13;
             case 14
-                SolveListNames = [SolveListNames, "19"];
-                SolveList = [SolveList, 19];
+                SolveListNames(i) = "19";
+                SolveList(i) = 19;
             case 15
-                SolveListNames = [SolveListNames, "20"];
-                SolveList = [SolveList, 20];
+                SolveListNames(i) = "20";
+                SolveList(i) = 20;
             case 16
-                SolveListNames = [SolveListNames, "21"];
-                SolveList = [SolveList, 21];
+                SolveListNames(i) = "21";
+                SolveList(i) = 21;
             case 17
-                SolveListNames = [SolveListNames, "22"];
-                SolveList = [SolveList, 22];
+                SolveListNames(i) = "22";
+                SolveList(i) = 22;
             case 18
-                SolveListNames = [SolveListNames, "23"];
-                SolveList = [SolveList, 23];
+                SolveListNames(i) = "23";
+                SolveList(i) = 23;
             case 19
-                SolveListNames = [SolveListNames, "26"];
-                SolveList = [SolveList, 26];
+                SolveListNames(i) = "26";
+                SolveList(i) = 26;
             case 20
-                SolveListNames = [SolveListNames, "27"];
-                SolveList = [SolveList, 27];
+                SolveListNames(i) = "27";
+                SolveList(i) = 27;
             case 21
-                SolveListNames = [SolveListNames, "28"];
-                SolveList = [SolveList, 28];
+                SolveListNames(i) = "28";
+                SolveList(i) = 28;
             case 22
-                SolveListNames = [SolveListNames, "29"];
-                SolveList = [SolveList, 29];
+                SolveListNames(i) = "29";
+                SolveList(i) = 29;
             case 23
-                SolveListNames = [SolveListNames, "30"];
-                SolveList = [SolveList, 30];
+                SolveListNames(i) = "30";
+                SolveList(i) = 30;
         end
     end
 end
@@ -336,7 +341,7 @@ for n = 3:numel(names)
             ntest=20;		%number of error analysis values
         end
 
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Solve%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % if cp == 1
         %     %Ifitpar = [3 23];
         %     Ifitpar = [3 23];   % Fits for k, cp of sample       
@@ -348,12 +353,15 @@ for n = 3:numel(names)
 
         Ifitpar = SolveList;
 
+        % Preallocate
         npar = size(Ifitpar,2);
-        parstart = zeros(npar,1);
+        parstart = zeros(1, npar);
+        parlabel = strings(1, npar);  % for string arrays
+        %%fit_results = 
 
         for b = 1:npar
             parstart(b) = par_vector(Ifitpar(b));
-            parlabel(b) = par_names(Ifitpar(b),1) + ' [' + par_names(Ifitpar(b),2) + ']';
+            parlabel(b) = par_names(Ifitpar(b),1) + " [" + par_names(Ifitpar(b),2) + "]";
         end
 
           fitresult_run = zeros(MC_iteration_limit,npar);
@@ -626,8 +634,7 @@ for n = 3:numel(names)
         cd(runfolder)
 
         textfile = fopen([run_name, '.txt'],'at');
-        fprintf(textfile, '%s', [num2str(Voltage), 'V ', num2str(aveTemp), '°C']);
-        fprintf(textfile,'\t');
+        fprintf(textfile, '%s', [num2str(Voltage), " V", num2str(aveTemp), " °C"]);
 
         for e=1:npar
             if any([2 4 6 14 20 21]==Ifitpar(e))

@@ -14,13 +14,14 @@ T=Temp+273.15;
 %Geometry%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %r_1 = .297315E-3; % inside radius up to wires %Not needed right now, but may be needed later
 %r_2 = .391629E-3; % middle of wires %Not needed right now, but may be needed later
-r_3 = .485942E-3; % outside of wires
-r_4 = .8293E-3; % inside radius of sheath
-% r_5 = 1.323831E-3; % outside radius of the probe, used in semi-infinite layer and sheath layer (meters)
-r_5 = 1.388E-3; % outside radius of the probe, used in semi-infinite layer and sheath layer (meters)
-r_heating_wire = .094313E-3; % radius of heating wires
-r_TC_wire = .094313E-3; % radius of thermocouple wires
-L = 0.1; % Length of the sensing region of probe
+r_3 = 0.0029/2; % outside of wires %% 2.9mm diam
+r_4 = 0.00600/2; % inside radius of sheath %% 6.00mm ID
+r_5 = 0.00697/2; % outside radius of the probe, used in semi-infinite layer and sheath layer (meters) 6.97mm OD
+r_heating_wire = 0.0001270/2; % radius of heating wires %% 36g 	0.0001270mm diam
+r_TC_wire = 0.00051/2; % radius of thermocouple wires %% 0.51 mm diam
+L = 0.10; % Length of the sensing region of probe %% 10 cm?
+rcrucible = 0.05111; % graphite crucible
+rsample = 0.01485; % Graphite crucible
 
 % Areas for each material %Not needed right now, but may be needed later
 %A_alumel = pi*(r_TC_wire^2);%only 1 alumel wire
@@ -30,11 +31,11 @@ L = 0.1; % Length of the sensing region of probe
 %A_total = pi*r_5^2;
 
 % Relevant Volumes
-V_tc = 2*pi*(r_TC_wire^2)*L/2; % Thermocouple volume
-V_h = 2*pi*(r_heating_wire^2)*L; % Heating element volume (2 lengths of heating wire
+V_tc = 2*pi*(r_TC_wire^2)*L/2; % Thermocouple volume (2 lengths of heating wire, have length of probe)
+V_h = 2*pi*(r_heating_wire^2)*L; % Heating element volume (2 lengths of heating wire)
 V_i = pi*(r_4^2)*L-V_tc-V_h; % Insulation
 V_A = pi*(r_3^2)*L-V_tc-V_h; % Insulation inside outer wire radius
-V_s = pi*(r_5^2)*L-pi*(r_4^2)*L; % Sheath Volume
+V_s = (pi*(r_5^2)-pi*(r_4^2))*L; % Sheath Volume
 V_total = V_tc+V_h+V_i+V_s; % Total Probe Volume
 
 % Pre-10-19-24:
@@ -103,9 +104,9 @@ elseif T >= 873
     k_Alumina = ((9.1211-12.558)/(873-700))*(T-700)+12.558; %because I don't know what it would be. placeholder for now
 end
 
-% Porous Alumina
-phi = 0/100;   % =48 Volume fraction of voids (modelling cracked insulation), 7.38 correction from old files
-k_Alumina = k_Alumina*exp((-1.5*phi)/(1-phi));  % (Z. Zivcoca et al, 2009)
+% % Porous Alumina
+% phi = 0/100;   % =48 Volume fraction of voids (modelling cracked insulation), 7.38 correction from old files
+% k_Alumina = k_Alumina*exp((-1.5*phi)/(1-phi));  % (Z. Zivcoca et al, 2009)
 
 % Density- Alumina
 rho_Alumina = 3900;
@@ -217,9 +218,10 @@ alpha_air = k_air/(density_air*cp_air);
 
 %Lumped Probe Properties: TC to Insulation (Sheath excluded)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-alpha_eff_wire = (alpha_Chromel*(V_tc/2+2*V_h)+ alpha_Alumel*V_tc/2+alpha_Alumina*V_A)/(V_tc+V_h+V_A);
-rho_eff_wire = (rho_Chromel*(V_tc/2+2*V_h)+ rho_Alumel*V_tc/2+rho_Alumina*V_A)/(V_tc+V_h+V_A);
-cp_eff_wire = (cp_Chromel*(V_tc/2+2*V_h)+ cp_Alumel*V_tc/2+cp_Alumina*V_A)/(V_tc+V_h+V_A);
+%%% for some reason, V-h was being multipled by 2 in the numerators. Deleted "*2" on 5.22.25
+alpha_eff_wire = (alpha_Chromel*(V_tc/2+V_h)+ alpha_Alumel*V_tc/2+alpha_Alumina*V_A)/(V_tc+V_h+V_A); 
+rho_eff_wire = (rho_Chromel*(V_tc/2+V_h)+ rho_Alumel*V_tc/2+rho_Alumina*V_A)/(V_tc+V_h+V_A);
+cp_eff_wire = (cp_Chromel*(V_tc/2+V_h)+ cp_Alumel*V_tc/2+cp_Alumina*V_A)/(V_tc+V_h+V_A);
 k_eff_wire = alpha_eff_wire*(rho_eff_wire*cp_eff_wire);
 
 k_insulation = k_Alumina;   % Use if separated into probe layers
@@ -233,9 +235,12 @@ if MC == 1
 end
 %k_probe = kprobe;
 
-alphaprobe = (alpha_Chromel*(V_tc+2*V_h)+ alpha_Alumel*V_tc+alpha_Alumina*V_i+alpha_Ni*V_s+2.074e-5*V_A)/V_total; %Volume-based weighted average of wires, insluation, and sheath. This is how Hollar describes it.
+%%% for some reason, V-h was being multipled by 2 in the numerators.
+%%% Deleted "*2" on 5.22.25. Also changed V_tc to be divided by 2 here as
+%%% it is above
+alphaprobe = (alpha_Chromel*(V_tc/2+V_h)+ alpha_Alumel*V_tc/2+alpha_Alumina*V_i+alpha_Ni*V_s)/V_total; %Volume-based weighted average of wires, insluation, and sheath. This is how Hollar describes it.
 
-alpha_wires_ins = (alpha_Chromel*(V_tc/2+V_h)+ alpha_Alumel*V_tc/2+alpha_Alumina*V_i)/V_total; %Weighted avg thermal diff. of wires, insulation 
+% alpha_wires_ins = (alpha_Chromel*(V_tc/2+V_h)+ alpha_Alumel*V_tc/2+alpha_Alumina*V_i)/V_total; %Weighted avg thermal diff. of wires, insulation 
 %pCp_probe = (A_alumel*(rho_Alumel*cp_Alumel)+A_chromel*(rho_Chromel*cp_Chromel)+A_alumina*(rho_Alumina*cp_Alumina)+A_ni*(rho_Ni*cp_Ni))/A_total;
 %alphaprobe = k_probe/pCp_probe;
 
@@ -1489,6 +1494,9 @@ end
 %Other Parameters%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% k_sheath = k_Steel316;
+% alpha_sheath = alpha_Steel316;
+
 %Voltage%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Voltage = .923*Volt; %According to Brian, the long wires carrying the power to the probe drops some voltage. We should remeasure this.
 bias_voltage = .01; %We need to figure out where this came from
@@ -1539,7 +1547,7 @@ if MC == 1
 end
 
 %Sample Radius%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rsample =  0.00209; % Nickel Crucible 2
+rsample = rsample;
 bias_rsample = 0.000005;
 %uncertainty_rsample = 6.22093e-5/rsample; %Check this
 uncertainty_rsample = 9.5e-5/rsample;
@@ -1549,7 +1557,7 @@ if MC == 1
 end
 
 %Crucible Radius%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rcrucible = 0.0127;
+rcrucible = rcrucible;
 bias_rcrucible = 5e-6;
 uncertainty_rcrucible = 1.58114e-5/rcrucible;
 
@@ -1558,7 +1566,7 @@ if MC == 1
 end
 
 %Length of Probe%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-L = 0.1;
+L = L;
 bias_length = 0.000005;
 uncertainty_length = 0;%Check this
 
@@ -1683,61 +1691,59 @@ decay_point = 0; % Decay point
 % cal.rsheath = [0.001050344, 0, 3.4313E-05];
 % cal.rsample = [0.002201326, 0, 0.000410645];
 
-% From MC-approx.formula of all Argon data
-cal.k_eff_wire = [44.83184871, 0, 6.372063996];
-cal.alpha_eff_wire = [6.56217E-06, 0, 1.97318E-06];
-cal.k_insulation = [0.3833085, 0, 0.093277606];
-cal.RthInsShth = [0.500066305, 0, 0.090898829];
-cal.k_sheath = [96.36535545, 0, 21.56055776];
-cal.alpha_sheath = [1.74369E-05, 0, 6.15064E-06];
-cal.emissivity_probe = [0.865944386, 0, 0.26058421];
-cal.emissivity_crucible = [0.671821998, 0, 0.186969856];
-cal.rwires = [0.000486525, 0, 7.36942E-05];         % Radius up to outside of heating wires
-cal.rsheath_inner = [0.000736535, 0, 0.000106993];
-cal.rsheath = [0.001050344, 0, 7.96631E-05];
-cal.rsample = [0.002201326, 0, 0.000586233];
+% % From MC-approx.formula of all Argon data
+% cal.k_eff_wire = [44.83184871, 0, 6.372063996];
+% cal.alpha_eff_wire = [6.56217E-06, 0, 1.97318E-06];
+% cal.k_insulation = [0.3833085, 0, 0.093277606];
+% cal.RthInsShth = [0.500066305, 0, 0.090898829];
+% cal.k_sheath = [96.36535545, 0, 21.56055776];
+% cal.alpha_sheath = [1.74369E-05, 0, 6.15064E-06];
+% cal.emissivity_probe = [0.865944386, 0, 0.26058421];
+% cal.emissivity_crucible = [0.671821998, 0, 0.186969856];
+% cal.rwires = [0.000486525, 0, 7.36942E-05];         % Radius up to outside of heating wires
+% cal.rsheath_inner = [0.000736535, 0, 0.000106993];
+% cal.rsheath = [0.001050344, 0, 7.96631E-05];
+% cal.rsample = [0.002201326, 0, 0.000586233];
 
 
-% Get the list of field names
-calpars = fieldnames(cal);
-if MC == 1
-    for i = 1:length(calpars)
-        field_name = calpars{i};  % Get the field name
-        calparval = cal.(field_name);
-        MonteCarloProp(calparval(3),calparval(2),calparval(1));
-    end    
-end
+% % Get the list of field names
+% calpars = fieldnames(cal);
+% if MC == 1
+%     for i = 1:length(calpars)
+%         field_name = calpars{i};  % Get the field name
+%         calparval = cal.(field_name);
+%         MonteCarloProp(calparval(3),calparval(2),calparval(1));
+%     end    
+% end
 
-
-
-par_vector(1) = cal.k_eff_wire(1); 
-par_vector(2) = cal.alpha_eff_wire(1); 
-par_vector(3) = cal.k_insulation(1);   %k_probe; 0.200935; %
-par_vector(4) = alpha_insulation;   %k_probe; 2.44524E-8; %
-par_vector(5) = cal.RthInsShth(1); %6.9944; %
-par_vector(6) = cal.k_sheath(1); %26.6127; %
-par_vector(7) = cal.alpha_sheath(1); %1.0028E-4; %
+par_vector(1) = k_eff_wire;
+par_vector(2) = alpha_eff_wire;
+par_vector(3) = k_insulation;           % formerly cal.k_insulation(1)
+par_vector(4) = alpha_insulation;
+par_vector(5) = RthInsShth;             % formerly cal.RthInsShth(1)
+par_vector(6) = k_sheath;               % formerly cal.k_sheath(1)
+par_vector(7) = alpha_sheath;           % formerly cal.alpha_sheath(1)
 par_vector(8) = k_sample;
 par_vector(9) = alpha_sample;
 par_vector(10) = k_crucible;
 par_vector(11) = alpha_crucible;
-par_vector(12) = cal.emissivity_probe(1);
-par_vector(13) = cal.emissivity_crucible(1);
+par_vector(12) = emissivity_probe;      % formerly cal.emissivity_probe(1)
+par_vector(13) = emissivity_crucible;   % formerly cal.emissivity_crucible(1)
 par_vector(14) = index_of_refraction;
 par_vector(15) = scatter;
 par_vector(16) = Temp;
 par_vector(17) = Voltage;
 par_vector(18) = Resistance;
-par_vector(19) = cal.rwires(1);
-par_vector(20) = cal.rsheath_inner(1);
-par_vector(21) = cal.rsheath(1);
-par_vector(22) = cal.rsample(1);
+par_vector(19) = rwires;                % formerly cal.rwires(1)
+par_vector(20) = rsheath_inner;         % formerly cal.rsheath_inner(1)
+par_vector(21) = rsheath;               % formerly cal.rsheath(1)
+par_vector(22) = rsample;               % formerly cal.rsample(1)
 par_vector(23) = rcrucible;
 par_vector(24) = L;
 par_vector(25) = h_convection;
 par_vector(26) = rho_sample;
 par_vector(27) = cp_sample;
-par_vector(28) = rho_sample*cp_sample;
+par_vector(28) = rho_sample * cp_sample;
 par_vector(29) = Current;
 par_vector(30) = Flux_decay;
 par_vector(31) = decay_point;
